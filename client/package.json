@@ -2,6 +2,7 @@
   "name": "closed-end-funds-client",
   "version": "0.1.0",
   "private": true,
+  "homepage": "/venture-fund-dashboard",
 
   "dependencies": {
     "react": "^18.2.0",
