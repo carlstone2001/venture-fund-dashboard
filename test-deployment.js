@@ -79,6 +79,7 @@ if (allFilesExist) {
 console.log('\n📋 Next Steps:');
 console.log('1. Repository: https://github.com/carlstone2001/venture-fund-dashboard');
 console.log('2. Deploy Method 1: Import from GitHub at vercel.com/new');
+console.log('   - Project Name: "closed-end-funds" for URL: closed-end-funds.vercel.app');
 console.log('3. Deploy Method 2: Use "npx vercel" after authentication');
 console.log('4. Deploy Method 3: Use Netlify with same GitHub repo');
 console.log('\n🎉 Dashboard is ready for deployment!');

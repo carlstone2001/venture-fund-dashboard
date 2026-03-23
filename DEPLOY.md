@@ -7,6 +7,7 @@
 2. Connect GitHub account
 3. Import repository: `carlstone2001/venture-fund-dashboard`
 4. Configure deployment:
+   - **Project Name**: `closed-end-funds` (for URL: closed-end-funds.vercel.app)
    - **Framework Preset**: Other
    - **Build Command**: `cd client && npm install && npm run build`
    - **Output Directory**: `client/build`
@@ -18,7 +19,7 @@
 npx vercel
 # Follow prompts:
 # - Link to existing project? N
-# - Project name: venture-fund-dashboard
+# - Project name: closed-end-funds
 # - Directory: ./
 # - Want to modify settings? Y
 # - Build Command: cd client && npm install && npm run build

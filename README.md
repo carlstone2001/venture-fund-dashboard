@@ -13,7 +13,7 @@ A real-time dashboard for tracking publicly traded venture capital funds, BDCs, 
 
 ## Live Demo
 
-🚀 **[Live Dashboard](https://venture-fund-dashboard.vercel.app)**
+🚀 **[Live Dashboard](https://closed-end-funds.vercel.app)**
 
 ## Local Development
 
