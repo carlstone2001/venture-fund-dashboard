@@ -1,0 +1,8 @@
+services:
+  - type: web
+    name: closed-end-funds
+    env: static
+    buildCommand: npm run vercel-build
+    staticPublishPath: client/build
+    domains:
+      - closed-end-funds.onrender.com
