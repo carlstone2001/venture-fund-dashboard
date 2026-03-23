@@ -177,6 +177,7 @@ function initializeDatabase() {
             exchange TEXT,
             inception_date DATE,
             investment_strategy TEXT,
+            category TEXT,
             is_active INTEGER DEFAULT 1
           )
         `);
@@ -215,8 +216,8 @@ function initializeDatabase() {
         // Insert sample data
         const insertFund = db.prepare(`
           INSERT OR REPLACE INTO funds 
-          (symbol, name, management_company, fund_type, exchange, is_active)
-          VALUES (?, ?, ?, ?, ?, 1)
+          (symbol, name, management_company, fund_type, exchange, category, is_active)
+          VALUES (?, ?, ?, ?, ?, ?, 1)
         `);
 
         const insertPriceData = db.prepare(`
@@ -239,7 +240,8 @@ function initializeDatabase() {
             fund.name,
             fund.management_company,
             fund.fund_type,
-            fund.exchange
+            fund.exchange,
+            fund.fund_type // Use fund_type as category for now
           ]);
 
           if (fund.price) {
