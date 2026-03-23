@@ -1,0 +1,22 @@
+{
+  "name": "venture-fund-dashboard",
+  "version": "1.0.0",
+  "description": "Private Venture Fund Dashboard",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "concurrently \"node server.js\" \"cd client && npm start\"",
+    "build": "cd client && npm run build && npm run copy-build",
+    "copy-build": "cp -r client/build/* public/",
+    "install-all": "npm install && cd client && npm install",
+    "vercel-build": "cd client && npm install && npm run build"
+  },
+  "dependencies": {
+    "sqlite3": "^5.1.6",
+    "axios": "^1.6.2",
+    "dotenv": "^16.3.1"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  }
+}
