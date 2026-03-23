@@ -1,8 +1,27 @@
 const sqlite3 = require('sqlite3').verbose();
 const path = require('path');
+const fs = require('fs');
 
-// For Vercel, we need to handle the database path carefully
-const dbPath = path.join(process.cwd(), 'data', 'funds.db');
+// For Vercel, create database in /tmp if in production
+const dbPath = process.env.NODE_ENV === 'production' 
+  ? '/tmp/funds.db' 
+  : path.join(process.cwd(), 'data', 'funds.db');
+
+// Initialize database if it doesn't exist
+async function ensureDatabase() {
+  if (!fs.existsSync(dbPath)) {
+    // Initialize database by calling init-db
+    const { default: initHandler } = await import('./init-db.js');
+    const mockReq = { method: 'POST' };
+    const mockRes = {
+      status: () => mockRes,
+      json: () => mockRes,
+      setHeader: () => mockRes,
+      end: () => mockRes
+    };
+    await initHandler(mockReq, mockRes);
+  }
+}
 
 export default async function handler(req, res) {
   // Enable CORS
@@ -16,6 +35,7 @@ export default async function handler(req, res) {
   }
 
   if (req.method === 'GET') {
+    await ensureDatabase();
     const db = new sqlite3.Database(dbPath);
     
     const query = `

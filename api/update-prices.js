@@ -1,8 +1,25 @@
 const sqlite3 = require('sqlite3').verbose();
 const axios = require('axios');
 const path = require('path');
+const fs = require('fs');
 
-const dbPath = path.join(process.cwd(), 'data', 'funds.db');
+const dbPath = process.env.NODE_ENV === 'production' 
+  ? '/tmp/funds.db' 
+  : path.join(process.cwd(), 'data', 'funds.db');
+
+async function ensureDatabase() {
+  if (!fs.existsSync(dbPath)) {
+    const { default: initHandler } = await import('./init-db.js');
+    const mockReq = { method: 'POST' };
+    const mockRes = {
+      status: () => mockRes,
+      json: () => mockRes,
+      setHeader: () => mockRes,
+      end: () => mockRes
+    };
+    await initHandler(mockReq, mockRes);
+  }
+}
 
 // Yahoo Finance API helper
 async function fetchStockData(symbol) {
@@ -46,6 +63,7 @@ export default async function handler(req, res) {
   }
 
   if (req.method === 'POST') {
+    await ensureDatabase();
     const db = new sqlite3.Database(dbPath);
     
     return new Promise(async (resolve, reject) => {
