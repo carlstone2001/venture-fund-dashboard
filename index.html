@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simplified Venture Fund Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #1a202c;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 3rem;
+            color: white;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .dashboard {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 2rem;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+        }
+
+        .controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .update-btn {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 10px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .update-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);
+        }
+
+        .update-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .status {
+            font-size: 0.9rem;
+            color: #666;
+        }
+
+        .loading {
+            color: #667eea;
+        }
+
+        .error {
+            color: #e53e3e;
+        }
+
+        .success {
+            color: #38a169;
+        }
+
+        .funds-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+        }
+
+        .funds-table th {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 1rem;
+            text-align: left;
+            font-weight: 600;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .funds-table td {
+            padding: 1rem;
+            border-bottom: 1px solid #e2e8f0;
+            font-weight: 500;
+        }
+
+        .funds-table tr:nth-child(even) {
+            background-color: #f7fafc;
+        }
+
+        .funds-table tr:hover {
+            background-color: #edf2f7;
+            transition: background-color 0.2s;
+        }
+
+        .price {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #2d3748;
+        }
+
+        .change {
+            font-weight: 600;
+            padding: 0.25rem 0.5rem;
+            border-radius: 6px;
+            font-size: 0.9rem;
+        }
+
+        .change.positive {
+            background: #c6f6d5;
+            color: #22543d;
+        }
+
+        .change.negative {
+            background: #fed7d7;
+            color: #742a2a;
+        }
+
+        .fund-name {
+            font-weight: 600;
+            color: #2d3748;
+        }
+
+        .ticker {
+            color: #667eea;
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+
+            .header h1 {
+                font-size: 2rem;
+            }
+
+            .dashboard {
+                padding: 1.5rem;
+                border-radius: 15px;
+            }
+
+            .controls {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .update-btn {
+                width: 100%;
+                padding: 1rem;
+            }
+
+            .funds-table {
+                font-size: 0.9rem;
+            }
+
+            .funds-table th,
+            .funds-table td {
+                padding: 0.75rem 0.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Venture Fund Dashboard</h1>
+            <p>Real-time tracking of VCXA & HOOD positions</p>
+        </div>
+
+        <div class="dashboard">
+            <div class="controls">
+                <button id="updateBtn" class="update-btn">Update Prices</button>
+                <div id="status" class="status">Click "Update Prices" to load data</div>
+            </div>
+
+            <table class="funds-table">
+                <thead>
+                    <tr>
+                        <th>Fund</th>
+                        <th>Price</th>
+                        <th>Change</th>
+                        <th>Market Cap</th>
+                        <th>Volume</th>
+                        <th>Last Updated</th>
+                    </tr>
+                </thead>
+                <tbody id="fundsTableBody">
+                    <tr id="vcxa-row">
+                        <td>
+                            <div class="fund-name">10X Capital Venture Acquisition Corp II</div>
+                            <div class="ticker">NASDAQ: VCXA</div>
+                        </td>
+                        <td class="price">--</td>
+                        <td class="change">--</td>
+                        <td>--</td>
+                        <td>--</td>
+                        <td>--</td>
+                    </tr>
+                    <tr id="hood-row">
+                        <td>
+                            <div class="fund-name">Robinhood Markets Inc</div>
+                            <div class="ticker">NASDAQ: HOOD</div>
+                        </td>
+                        <td class="price">--</td>
+                        <td class="change">--</td>
+                        <td>--</td>
+                        <td>--</td>
+                        <td>--</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        // Fund data configuration
+        const funds = [
+            {
+                id: 'vcxa',
+                ticker: 'VCXA',
+                name: '10X Capital Venture Acquisition Corp II',
+                exchange: 'NASDAQ'
+            },
+            {
+                id: 'hood', 
+                ticker: 'HOOD',
+                name: 'Robinhood Markets Inc',
+                exchange: 'NASDAQ'
+            }
+        ];
+
+        let isUpdating = false;
+
+        // Format numbers
+        function formatNumber(num, decimals = 2) {
+            if (num === null || num === undefined || isNaN(num)) return '--';
+            return Number(num).toLocaleString('en-US', {
+                minimumFractionDigits: decimals,
+                maximumFractionDigits: decimals
+            });
+        }
+
+        // Format currency
+        function formatCurrency(num) {
+            if (num === null || num === undefined || isNaN(num)) return '--';
+            return '$' + formatNumber(num);
+        }
+
+        // Format large numbers (market cap)
+        function formatLargeNumber(num) {
+            if (num === null || num === undefined || isNaN(num)) return '--';
+            if (num >= 1e12) {
+                return '$' + formatNumber(num / 1e12, 1) + 'T';
+            } else if (num >= 1e9) {
+                return '$' + formatNumber(num / 1e9, 1) + 'B';
+            } else if (num >= 1e6) {
+                return '$' + formatNumber(num / 1e6, 1) + 'M';
+            }
+            return formatCurrency(num);
+        }
+
+        // Fetch stock data using Yahoo Finance API via proxy
+        async function fetchStockData(ticker) {
+            const corsProxy = 'https://api.allorigins.win/raw?url=';
+            const yahooUrl = `https://query1.finance.yahoo.com/v8/finance/chart/${ticker}`;
+            const fullUrl = corsProxy + encodeURIComponent(yahooUrl);
+
+            try {
+                const response = await fetch(fullUrl);
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const data = await response.json();
+                
+                if (!data?.chart?.result?.[0]) {
+                    throw new Error('Invalid data structure');
+                }
+
+                const result = data.chart.result[0];
+                const meta = result.meta;
+                const quote = result.indicators.quote[0];
+                
+                if (!meta || !quote) {
+                    throw new Error('Missing meta or quote data');
+                }
+
+                return {
+                    symbol: meta.symbol,
+                    price: meta.regularMarketPrice || meta.previousClose,
+                    change: meta.regularMarketPrice - meta.previousClose,
+                    changePercent: ((meta.regularMarketPrice - meta.previousClose) / meta.previousClose) * 100,
+                    volume: meta.regularMarketVolume,
+                    marketCap: meta.marketCap,
+                    timestamp: meta.regularMarketTime
+                };
+            } catch (error) {
+                console.error(`Error fetching data for ${ticker}:`, error);
+                throw error;
+            }
+        }
+
+        // Update fund row in the table
+        function updateFundRow(fundId, data, error = null) {
+            const row = document.getElementById(`${fundId}-row`);
+            if (!row) return;
+
+            const cells = row.cells;
+
+            if (error) {
+                cells[1].textContent = 'Error';
+                cells[2].textContent = 'Error';
+                cells[3].textContent = 'Error';
+                cells[4].textContent = 'Error';
+                cells[5].textContent = new Date().toLocaleTimeString();
+                return;
+            }
+
+            // Price
+            cells[1].textContent = formatCurrency(data.price);
+
+            // Change
+            const changeText = `${formatCurrency(Math.abs(data.change))} (${formatNumber(Math.abs(data.changePercent), 2)}%)`;
+            cells[2].textContent = (data.change >= 0 ? '+' : '-') + changeText;
+            cells[2].className = 'change ' + (data.change >= 0 ? 'positive' : 'negative');
+
+            // Market Cap
+            cells[3].textContent = formatLargeNumber(data.marketCap);
+
+            // Volume
+            cells[4].textContent = formatNumber(data.volume, 0);
+
+            // Last Updated
+            cells[5].textContent = new Date().toLocaleTimeString();
+        }
+
+        // Update status message
+        function updateStatus(message, type = 'success') {
+            const statusElement = document.getElementById('status');
+            statusElement.textContent = message;
+            statusElement.className = `status ${type}`;
+        }
+
+        // Update all fund data
+        async function updateAllFunds() {
+            if (isUpdating) return;
+
+            isUpdating = true;
+            const updateBtn = document.getElementById('updateBtn');
+            updateBtn.disabled = true;
+            updateBtn.textContent = 'Updating...';
+            updateStatus('Fetching real-time data...', 'loading');
+
+            const results = await Promise.allSettled(
+                funds.map(async (fund) => {
+                    try {
+                        const data = await fetchStockData(fund.ticker);
+                        updateFundRow(fund.id, data);
+                        return { fund: fund.ticker, success: true };
+                    } catch (error) {
+                        updateFundRow(fund.id, null, error);
+                        return { fund: fund.ticker, success: false, error: error.message };
+                    }
+                })
+            );
+
+            // Check results
+            const successful = results.filter(r => r.value?.success).length;
+            const total = results.length;
+
+            if (successful === total) {
+                updateStatus(`Successfully updated ${successful}/${total} funds`, 'success');
+            } else if (successful > 0) {
+                updateStatus(`Updated ${successful}/${total} funds (some errors)`, 'error');
+            } else {
+                updateStatus('Failed to update funds. Please try again.', 'error');
+            }
+
+            // Re-enable button
+            setTimeout(() => {
+                updateBtn.disabled = false;
+                updateBtn.textContent = 'Update Prices';
+                isUpdating = false;
+            }, 1000);
+        }
+
+        // Event listeners
+        document.addEventListener('DOMContentLoaded', function() {
+            const updateBtn = document.getElementById('updateBtn');
+            updateBtn.addEventListener('click', updateAllFunds);
+
+            // Auto-update on page load
+            setTimeout(updateAllFunds, 500);
+        });
+
+        // Auto-refresh every 2 minutes
+        setInterval(() => {
+            if (!isUpdating) {
+                updateAllFunds();
+            }
+        }, 120000);
+    </script>
+</body>
+</html>
