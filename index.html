@@ -206,7 +206,7 @@
     <div class="container">
         <div class="header">
             <h1>Venture Fund Dashboard</h1>
-            <p>Real-time tracking of VCXA & HOOD positions</p>
+            <p>Real-time tracking of AAGR & HOOD positions</p>
         </div>
 
         <div class="dashboard">
@@ -227,10 +227,10 @@
                     </tr>
                 </thead>
                 <tbody id="fundsTableBody">
-                    <tr id="vcxa-row">
+                    <tr id="aagr-row">
                         <td>
-                            <div class="fund-name">10X Capital Venture Acquisition Corp II</div>
-                            <div class="ticker">NASDAQ: VCXA</div>
+                            <div class="fund-name">African Agriculture Holdings Inc</div>
+                            <div class="ticker">NASDAQ: AAGR (formerly VCXA)</div>
                         </td>
                         <td class="price">--</td>
                         <td class="change">--</td>
@@ -258,16 +258,18 @@
         // Fund data configuration
         const funds = [
             {
-                id: 'vcxa',
-                ticker: 'VCXA',
-                name: '10X Capital Venture Acquisition Corp II',
-                exchange: 'NASDAQ'
+                id: 'aagr',
+                ticker: 'AAGR',
+                name: 'African Agriculture Holdings Inc',
+                exchange: 'NASDAQ',
+                description: 'Former 10X Capital Venture Acquisition Corp II (VCXA)'
             },
             {
                 id: 'hood', 
                 ticker: 'HOOD',
                 name: 'Robinhood Markets Inc',
-                exchange: 'NASDAQ'
+                exchange: 'NASDAQ',
+                description: 'Commission-free trading platform'
             }
         ];
 
