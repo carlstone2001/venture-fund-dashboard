@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simple Fund Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+            color: white;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .dashboard {
+            background: rgba(255,255,255,0.95);
+            border-radius: 15px;
+            padding: 25px;
+            color: #333;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+        }
+        .update-btn {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-bottom: 20px;
+            transition: transform 0.2s;
+        }
+        .update-btn:hover { transform: translateY(-2px); }
+        .funds-table {
+            width: 100%;
+            border-collapse: collapse;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .funds-table th {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 15px;
+            text-align: left;
+            font-weight: 600;
+        }
+        .funds-table td {
+            padding: 15px;
+            border-bottom: 1px solid #e5e5e5;
+        }
+        .funds-table tr:nth-child(even) { background-color: #f8f9fa; }
+        .price { font-size: 18px; font-weight: 600; color: #2d3748; }
+        .change.positive { color: #22543d; background: #c6f6d5; padding: 4px 8px; border-radius: 4px; }
+        .change.negative { color: #742a2a; background: #fed7d7; padding: 4px 8px; border-radius: 4px; }
+        .ticker { color: #667eea; font-size: 14px; font-weight: 500; }
+        .status { margin-bottom: 15px; padding: 10px; border-radius: 6px; }
+        .status.loading { background: #bee3f8; color: #2c5282; }
+        .status.success { background: #c6f6d5; color: #22543d; }
+        .status.error { background: #fed7d7; color: #742a2a; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Simplified Fund Dashboard</h1>
+            <p>Live tracking of AAGR & HOOD</p>
+        </div>
+        
+        <div class="dashboard">
+            <button id="updateBtn" class="update-btn">Update Prices</button>
+            <div id="status" class="status">Click "Update Prices" to load live data</div>
+            
+            <table class="funds-table">
+                <thead>
+                    <tr>
+                        <th>Fund</th>
+                        <th>Price</th>
+                        <th>Change</th>
+                        <th>Market Cap</th>
+                        <th>Volume</th>
+                        <th>Updated</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>
+                            <div><strong>African Agriculture Holdings</strong></div>
+                            <div class="ticker">NASDAQ: AAGR (formerly VCXA)</div>
+                        </td>
+                        <td class="price" id="aagr-price">--</td>
+                        <td id="aagr-change">--</td>
+                        <td id="aagr-cap">--</td>
+                        <td id="aagr-volume">--</td>
+                        <td id="aagr-time">--</td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <div><strong>Robinhood Markets Inc</strong></div>
+                            <div class="ticker">NASDAQ: HOOD</div>
+                        </td>
+                        <td class="price" id="hood-price">--</td>
+                        <td id="hood-change">--</td>
+                        <td id="hood-cap">--</td>
+                        <td id="hood-volume">--</td>
+                        <td id="hood-time">--</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        const funds = [
+            { id: 'aagr', ticker: 'AAGR' },
+            { id: 'hood', ticker: 'HOOD' }
+        ];
+
+        let updating = false;
+
+        function formatNumber(num, decimals = 2) {
+            if (!num || isNaN(num)) return '--';
+            return Number(num).toLocaleString('en-US', {
+                minimumFractionDigits: decimals,
+                maximumFractionDigits: decimals
+            });
+        }
+
+        function formatCurrency(num) {
+            if (!num || isNaN(num)) return '--';
+            return '$' + formatNumber(num);
+        }
+
+        function formatLargeNumber(num) {
+            if (!num || isNaN(num)) return '--';
+            if (num >= 1e12) return '$' + formatNumber(num / 1e12, 1) + 'T';
+            if (num >= 1e9) return '$' + formatNumber(num / 1e9, 1) + 'B';
+            if (num >= 1e6) return '$' + formatNumber(num / 1e6, 1) + 'M';
+            return formatCurrency(num);
+        }
+
+        async function fetchStockData(ticker) {
+            const corsProxy = 'https://api.allorigins.win/raw?url=';
+            const yahooUrl = `https://query1.finance.yahoo.com/v8/finance/chart/${ticker}`;
+            const response = await fetch(corsProxy + encodeURIComponent(yahooUrl));
+            const data = await response.json();
+            
+            if (!data?.chart?.result?.[0]) throw new Error('No data');
+            
+            const result = data.chart.result[0];
+            const meta = result.meta;
+            
+            return {
+                symbol: meta.symbol,
+                price: meta.regularMarketPrice || meta.previousClose,
+                change: meta.regularMarketPrice - meta.previousClose,
+                changePercent: ((meta.regularMarketPrice - meta.previousClose) / meta.previousClose) * 100,
+                volume: meta.regularMarketVolume,
+                marketCap: meta.marketCap
+            };
+        }
+
+        function updateStatus(msg, type = 'success') {
+            const status = document.getElementById('status');
+            status.textContent = msg;
+            status.className = `status ${type}`;
+        }
+
+        async function updatePrices() {
+            if (updating) return;
+            updating = true;
+            
+            const btn = document.getElementById('updateBtn');
+            btn.disabled = true;
+            btn.textContent = 'Updating...';
+            updateStatus('Fetching live data...', 'loading');
+
+            try {
+                for (const fund of funds) {
+                    try {
+                        const data = await fetchStockData(fund.ticker);
+                        
+                        document.getElementById(`${fund.id}-price`).textContent = formatCurrency(data.price);
+                        
+                        const changeEl = document.getElementById(`${fund.id}-change`);
+                        const changeText = `${data.change >= 0 ? '+' : ''}${formatCurrency(Math.abs(data.change))} (${formatNumber(Math.abs(data.changePercent), 2)}%)`;
+                        changeEl.textContent = changeText;
+                        changeEl.className = `change ${data.change >= 0 ? 'positive' : 'negative'}`;
+                        
+                        document.getElementById(`${fund.id}-cap`).textContent = formatLargeNumber(data.marketCap);
+                        document.getElementById(`${fund.id}-volume`).textContent = formatNumber(data.volume, 0);
+                        document.getElementById(`${fund.id}-time`).textContent = new Date().toLocaleTimeString();
+                    } catch (err) {
+                        console.error(`Error fetching ${fund.ticker}:`, err);
+                        document.getElementById(`${fund.id}-price`).textContent = 'Error';
+                    }
+                }
+                updateStatus('Successfully updated fund prices', 'success');
+            } catch (err) {
+                updateStatus('Failed to update prices. Please try again.', 'error');
+            }
+
+            setTimeout(() => {
+                btn.disabled = false;
+                btn.textContent = 'Update Prices';
+                updating = false;
+            }, 1000);
+        }
+
+        document.getElementById('updateBtn').addEventListener('click', updatePrices);
+        
+        // Auto-load on page load
+        setTimeout(updatePrices, 500);
+        
+        // Auto-refresh every 2 minutes
+        setInterval(() => {
+            if (!updating) updatePrices();
+        }, 120000);
+    </script>
+</body>
+</html>
